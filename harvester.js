@@ -114,6 +114,7 @@ async function ensureSchemaAndSeed() {
     }
 
     const tradeCols = [
+      "ADD COLUMN IF NOT EXISTS chain VARCHAR(16) DEFAULT 'sol'",
       "ADD COLUMN IF NOT EXISTS market_cap_usd DECIMAL(24,2) DEFAULT NULL",
       "ADD COLUMN IF NOT EXISTS volume_24h_usd DECIMAL(24,2) DEFAULT NULL",
       "ADD COLUMN IF NOT EXISTS profit_usd DECIMAL(20,8) DEFAULT NULL",
