@@ -124,9 +124,10 @@ async function ensureSchema() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
 
-    // 2. Safely alter tables to ensure missing columns exist on cloud database
+    // 2. Safely alter tables to ensure ALL missing columns exist on cloud database
     await ensureColumnExists('approved_wallets', 'chain', "VARCHAR(16) NOT NULL DEFAULT 'solana'");
     await ensureColumnExists('approved_wallets', 'trader_type', "VARCHAR(32) NOT NULL DEFAULT 'KOL'");
+    await ensureColumnExists('approved_wallets', 'name', "VARCHAR(128) DEFAULT NULL");
     await ensureColumnExists('approved_wallets', 'twitter_username', "VARCHAR(128) DEFAULT NULL");
     await ensureColumnExists('approved_wallets', 'twitter_name', "VARCHAR(128) DEFAULT NULL");
     await ensureColumnExists('approved_wallets', 'avatar', "TEXT DEFAULT NULL");
@@ -135,18 +136,38 @@ async function ensureSchema() {
     await ensureColumnExists('approved_wallets', 'trade_count', "INT DEFAULT 1");
     await ensureColumnExists('approved_wallets', 'win_rate_7d', "DECIMAL(5,2) DEFAULT NULL");
     await ensureColumnExists('approved_wallets', 'pnl_7d_usd', "DECIMAL(20,4) DEFAULT NULL");
+    await ensureColumnExists('approved_wallets', 'realized_pnl_usd', "DECIMAL(20,4) DEFAULT NULL");
+    await ensureColumnExists('approved_wallets', 'unrealized_pnl_usd', "DECIMAL(20,4) DEFAULT NULL");
     await ensureColumnExists('approved_wallets', 'followers_count', "INT DEFAULT NULL");
     await ensureColumnExists('approved_wallets', 'sol_balance', "DECIMAL(20,9) DEFAULT NULL");
 
     await ensureColumnExists('kol_trades', 'chain', "VARCHAR(16) DEFAULT 'solana'");
+    await ensureColumnExists('kol_trades', 'side', "VARCHAR(10) NOT NULL DEFAULT 'buy'");
+    await ensureColumnExists('kol_trades', 'base_address', "VARCHAR(64) DEFAULT ''");
+    await ensureColumnExists('kol_trades', 'base_amount', "DECIMAL(36, 12) DEFAULT 0");
+    await ensureColumnExists('kol_trades', 'quote_amount', "DECIMAL(36, 12) DEFAULT 0");
+    await ensureColumnExists('kol_trades', 'buy_cost_usd', "DECIMAL(20, 8) DEFAULT 0");
+    await ensureColumnExists('kol_trades', 'token_amount', "DECIMAL(36, 12) DEFAULT 0");
+    await ensureColumnExists('kol_trades', 'amount_usd', "DECIMAL(20, 8) DEFAULT 0");
+    await ensureColumnExists('kol_trades', 'price', "DECIMAL(36, 18) DEFAULT 0");
+    await ensureColumnExists('kol_trades', 'price_usd', "DECIMAL(24, 12) DEFAULT 0");
+    await ensureColumnExists('kol_trades', 'balance', "DECIMAL(36, 12) DEFAULT 0");
+    await ensureColumnExists('kol_trades', 'is_open_or_close', "TINYINT DEFAULT 0");
+    await ensureColumnExists('kol_trades', 'timestamp', "BIGINT NOT NULL DEFAULT 0");
+    await ensureColumnExists('kol_trades', 'trade_time', "DATETIME NULL");
     await ensureColumnExists('kol_trades', 'base_token_symbol', "VARCHAR(64) DEFAULT NULL");
     await ensureColumnExists('kol_trades', 'base_token_logo', "TEXT DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'base_token_total_supply', "VARCHAR(64) DEFAULT NULL");
     await ensureColumnExists('kol_trades', 'base_token_launchpad', "VARCHAR(32) DEFAULT NULL");
     await ensureColumnExists('kol_trades', 'maker_avatar', "TEXT DEFAULT NULL");
     await ensureColumnExists('kol_trades', 'maker_name', "VARCHAR(128) DEFAULT NULL");
     await ensureColumnExists('kol_trades', 'maker_tags', "JSON DEFAULT NULL");
     await ensureColumnExists('kol_trades', 'maker_twitter_username', "VARCHAR(128) DEFAULT NULL");
     await ensureColumnExists('kol_trades', 'maker_twitter_name', "VARCHAR(128) DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'market_cap_usd', "DECIMAL(24,2) DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'volume_24h_usd', "DECIMAL(24,2) DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'profit_usd', "DECIMAL(20,8) DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'realized_pnl_usd', "DECIMAL(20,8) DEFAULT NULL");
     await ensureColumnExists('kol_trades', 'raw_json', "JSON DEFAULT NULL");
 
     // 3. Ensure Unique Index on kol_trades(transaction_hash)
@@ -161,9 +182,6 @@ async function ensureSchema() {
     console.error('⚠️ [Schema Error]:', err.message);
   }
 }
-
-// Run schema check on launch
-ensureSchema();
 
 // Map UI chain names to GMGN CLI chain codes
 const CHAIN_MAP = [
@@ -329,4 +347,11 @@ async function runHarvestLoop() {
   }
 }
 
-setInterval(runHarvestLoop, 3000);
+// Run schema check and migration FIRST, THEN start loop
+ensureSchema().then(() => {
+  console.log('🚀 [AlphaByData Harvester] Starting Real GMGN On-Chain Intelligence Loop...');
+  setInterval(runHarvestLoop, 3000);
+}).catch(err => {
+  console.error('⚠️ [Schema Error]:', err);
+  setInterval(runHarvestLoop, 3000);
+});

@@ -64,6 +64,8 @@ async function ensureSchema() {
     await ensureColumnExists('approved_wallets', 'trade_count', "INT DEFAULT 1");
     await ensureColumnExists('approved_wallets', 'win_rate_7d', "DECIMAL(5,2) DEFAULT NULL");
     await ensureColumnExists('approved_wallets', 'pnl_7d_usd', "DECIMAL(20,4) DEFAULT NULL");
+    await ensureColumnExists('approved_wallets', 'realized_pnl_usd', "DECIMAL(20,4) DEFAULT NULL");
+    await ensureColumnExists('approved_wallets', 'unrealized_pnl_usd', "DECIMAL(20,4) DEFAULT NULL");
 
     await ensureColumnExists('kol_trades', 'chain', "VARCHAR(16) DEFAULT 'solana'");
     await ensureColumnExists('kol_trades', 'base_token_symbol', "VARCHAR(64) DEFAULT NULL");
