@@ -260,6 +260,7 @@ async function harvestRealGMGNLoop() {
           win_rate_7d, pnl_7d_usd, realized_pnl_usd, unrealized_pnl_usd, followers_count, sol_balance
         ) VALUES (?, ?, 'KOL', ?, ?, ?, ?, ?, 1, 1, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE 
+          chain = VALUES(chain),
           trade_count = trade_count + 1,
           name = VALUES(name),
           twitter_name = VALUES(twitter_name),
