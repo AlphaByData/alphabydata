@@ -28,12 +28,17 @@ app.get('/app', (req, res) => {
 // Serve static assets from public/
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Database connection pool
+// Database connection pool (supports SSL for Cloud MySQL DB)
+const dbHost = process.env.DB_HOST || 'localhost';
+const isCloudDb = dbHost !== 'localhost' && dbHost !== '127.0.0.1';
+
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
+  host: dbHost,
+  port: parseInt(process.env.DB_PORT || (isCloudDb ? '4000' : '3306')),
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'gmgn',
+  ssl: isCloudDb ? { rejectUnauthorized: false } : undefined,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
