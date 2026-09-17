@@ -2,11 +2,24 @@ import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import express from 'express';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, '../v1/.env') });
+
+// Mini Express HTTP Server for Render Health Check
+const app = express();
+const PORT = process.env.PORT || 10000;
+
+app.get('/', (req, res) => {
+  res.send('🚀 AlphaByData 2-Second GMGN Harvester Worker Active 24/7');
+});
+
+app.listen(PORT, () => {
+  console.log(`🌐 [Render Health Check] Listening on port ${PORT}`);
+});
 
 // Database Connection Pool (supports SSL for Cloud MySQL DB)
 const dbHost = process.env.DB_HOST || 'localhost';

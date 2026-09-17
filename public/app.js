@@ -175,7 +175,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="flex items-start justify-between gap-2">
               <div class="flex items-center gap-3">
                 <div class="relative">
-                  <img src="${kol.avatar}" alt="${kol.maker_name}" class="w-12 h-12 rounded-full border-2 border-slate-200 dark:border-slate-700 object-cover" onerror="this.src='https://api.dicebear.com/7.x/identicon/svg?seed=${kol.wallet_address}'">
+                  <img 
+                    src="${kol.avatar}" 
+                    alt="${kol.maker_name}" 
+                    referrerpolicy="no-referrer" 
+                    class="w-12 h-12 rounded-full border-2 border-slate-200 dark:border-slate-700 object-cover bg-slate-100 dark:bg-slate-800" 
+                    onerror="if(!this.dataset.tried){this.dataset.tried=true;this.src='https://unavatar.io/twitter/${kol.twitter_username || kol.maker_name}';}else{this.src='https://api.dicebear.com/7.x/identicon/svg?seed=${kol.wallet_address}';}"
+                  >
                   <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-rose-600 text-white flex items-center justify-center text-[9px] font-black border-2 border-white dark:border-slate-900"><i class="pi pi-check"></i></span>
                 </div>
                 <div>
