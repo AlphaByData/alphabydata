@@ -77,6 +77,7 @@ async function ensureSchema() {
     await ensureColumnExists('kol_trades', 'maker_twitter_username', "VARCHAR(128) DEFAULT NULL");
     await ensureColumnExists('kol_trades', 'maker_twitter_name', "VARCHAR(128) DEFAULT NULL");
     await ensureColumnExists('kol_trades', 'raw_json', "JSON DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'created_at', "TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
   } catch (e) {
     console.warn('⚠️ [server.js] Schema check warning:', e.message);
   }
@@ -208,8 +209,8 @@ app.get('/api/kols', async (req, res) => {
           NULL as unrealized_pnl_usd,
           NULL as followers_count,
           NULL as sol_balance,
-          MIN(created_at) as first_seen_at,
-          MAX(created_at) as last_seen_at
+          MIN(trade_time) as first_seen_at,
+          MAX(trade_time) as last_seen_at
         FROM kol_trades
         WHERE chain = ?
       `;
@@ -239,9 +240,16 @@ app.get('/api/kols', async (req, res) => {
       const cleanTags = parsedTags.map(t => t.replace('_', ' '));
       const { winRate, totalVolumeSol } = computeKOLMetrics(kol.wallet_address, kol.trade_count);
 
+      const chainKey = (kol.chain || selectedChain).toLowerCase();
+      let jupiterUrl = `https://jup.ag/portfolio/${kol.wallet_address}`;
+      if (chainKey === 'bsc') jupiterUrl = `https://bscscan.com/address/${kol.wallet_address}`;
+      else if (chainKey === 'base') jupiterUrl = `https://basescan.org/address/${kol.wallet_address}`;
+      else if (chainKey === 'eth') jupiterUrl = `https://etherscan.io/address/${kol.wallet_address}`;
+      else if (chainKey === 'robinhood') jupiterUrl = `https://dexscreener.com/search?q=${kol.wallet_address}`;
+
       return {
         wallet_address: kol.wallet_address,
-        chain: (kol.chain || selectedChain).toUpperCase(),
+        chain: chainKey.toUpperCase(),
         category: 'KOL',
         maker_name: kol.twitter_name || kol.name || 'KOL Influencer',
         twitter_username: kol.twitter_username,
@@ -255,7 +263,7 @@ app.get('/api/kols', async (req, res) => {
         sol_balance: kol.sol_balance ? parseFloat(kol.sol_balance) : null,
         total_volume_sol: totalVolumeSol,
         twitter_url: kol.twitter_username ? `https://x.com/${kol.twitter_username}` : null,
-        jupiter_url: `https://jup.ag/portfolio/${kol.wallet_address}`
+        jupiter_url: jupiterUrl
       };
     });
 
@@ -309,9 +317,9 @@ app.get('/api/kol/:wallet', async (req, res) => {
 
     let kol = kolRows.length > 0 ? kolRows[0] : null;
 
-    // Query Today's (Daily 24H) On-Chain Trades for this KOL
+    // Query Daily On-Chain Trades for this KOL
     const [trades] = await pool.query(
-      "SELECT id, transaction_hash, maker, side, base_address, base_token_symbol, quote_amount, amount_usd, price_usd, trade_time FROM kol_trades WHERE maker = ? AND (trade_time >= CURDATE() OR created_at >= CURDATE()) ORDER BY trade_time DESC LIMIT 50",
+      "SELECT id, transaction_hash, maker, chain, side, base_address, base_token_symbol, quote_amount, amount_usd, price_usd, trade_time FROM kol_trades WHERE maker = ? ORDER BY trade_time DESC LIMIT 50",
       [wallet]
     );
 

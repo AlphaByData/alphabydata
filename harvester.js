@@ -169,6 +169,7 @@ async function ensureSchema() {
     await ensureColumnExists('kol_trades', 'profit_usd', "DECIMAL(20,8) DEFAULT NULL");
     await ensureColumnExists('kol_trades', 'realized_pnl_usd', "DECIMAL(20,8) DEFAULT NULL");
     await ensureColumnExists('kol_trades', 'raw_json', "JSON DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'created_at', "TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
 
     // 3. Ensure Unique Index on kol_trades(transaction_hash)
     try {

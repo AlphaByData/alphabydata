@@ -458,7 +458,14 @@ document.addEventListener('DOMContentLoaded', () => {
           const isBuy = t.trade_type === 'BUY';
           const typeBadge = isBuy ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400';
           const dateStr = new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          const jupSwap = `https://jup.ag/swap/SOL-${t.token_address}`;
+
+          const chainLower = (kol.chain || 'SOLANA').toLowerCase();
+          let swapUrl = `https://jup.ag/swap/SOL-${t.token_address}`;
+          let swapText = 'Swap JUP';
+          if (chainLower === 'bsc') { swapUrl = `https://pancakeswap.finance/swap?outputCurrency=${t.token_address}`; swapText = 'PancakeSwap'; }
+          else if (chainLower === 'base') { swapUrl = `https://aerodrome.finance/swap?from=eth&to=${t.token_address}`; swapText = 'Aerodrome'; }
+          else if (chainLower === 'eth') { swapUrl = `https://app.uniswap.org/#/swap?outputCurrency=${t.token_address}`; swapText = 'Uniswap'; }
+          else if (chainLower === 'robinhood') { swapUrl = `https://dexscreener.com/search?q=${t.token_address}`; swapText = 'DexScreener'; }
 
           return `
             <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
@@ -468,8 +475,8 @@ document.addEventListener('DOMContentLoaded', () => {
               <td class="px-4 py-3.5 font-semibold text-slate-600 dark:text-slate-300 text-xs">$${t.price_usd ? parseFloat(t.price_usd).toFixed(6) : '0.00'}</td>
               <td class="px-4 py-3.5 text-[11px] font-medium text-slate-400">${dateStr}</td>
               <td class="px-4 py-3.5 text-right">
-                <a href="${jupSwap}" target="_blank" class="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 font-extrabold text-[11px] hover:bg-rose-600 hover:text-white transition-all inline-flex items-center gap-1">
-                  Swap JUP <i class="pi pi-external-link text-[9px]"></i>
+                <a href="${swapUrl}" target="_blank" class="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 font-extrabold text-[11px] hover:bg-rose-600 hover:text-white transition-all inline-flex items-center gap-1">
+                  ${swapText} <i class="pi pi-external-link text-[9px]"></i>
                 </a>
               </td>
             </tr>
