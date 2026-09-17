@@ -49,9 +49,21 @@ const pool = mysql.createPool({
 
 console.log('🚀 [AlphaByData Harvester] Starting Real GMGN On-Chain Intelligence Loop...');
 
+async function ensureColumnExists(table, column, definition) {
+  try {
+    await pool.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`);
+    console.log(`✅ [Schema Fix] Added missing column '${column}' to '${table}'.`);
+  } catch (err) {
+    // Ignore error 1060 (Duplicate column name) or 1054
+    if (!err.message.includes('Duplicate column name') && err.code !== 'ER_DUP_FIELDNAME') {
+      // ignore
+    }
+  }
+}
+
 async function ensureSchema() {
   try {
-    // 0. Ensure tables exist
+    // 1. Create tables if not exist
     await pool.query(`
       CREATE TABLE IF NOT EXISTS \`approved_wallets\` (
         \`wallet_address\` VARCHAR(64) PRIMARY KEY,
@@ -81,8 +93,8 @@ async function ensureSchema() {
         \`transaction_hash\` VARCHAR(128) NOT NULL,
         \`maker\` VARCHAR(64) NOT NULL,
         \`chain\` VARCHAR(16) DEFAULT 'solana',
-        \`side\` VARCHAR(10) NOT NULL,
-        \`base_address\` VARCHAR(64) NOT NULL,
+        \`side\` VARCHAR(10) NOT NULL DEFAULT 'buy',
+        \`base_address\` VARCHAR(64) NOT NULL DEFAULT '',
         \`base_amount\` DECIMAL(36, 12) DEFAULT 0,
         \`quote_amount\` DECIMAL(36, 12) DEFAULT 0,
         \`buy_cost_usd\` DECIMAL(20, 8) DEFAULT 0,
@@ -92,7 +104,7 @@ async function ensureSchema() {
         \`price_usd\` DECIMAL(24, 12) DEFAULT 0,
         \`balance\` DECIMAL(36, 12) DEFAULT 0,
         \`is_open_or_close\` TINYINT DEFAULT 0,
-        \`timestamp\` BIGINT NOT NULL,
+        \`timestamp\` BIGINT NOT NULL DEFAULT 0,
         \`trade_time\` DATETIME NULL,
         \`base_token_symbol\` VARCHAR(64) DEFAULT NULL,
         \`base_token_logo\` TEXT DEFAULT NULL,
@@ -108,11 +120,43 @@ async function ensureSchema() {
         \`profit_usd\` DECIMAL(20,8) DEFAULT NULL,
         \`realized_pnl_usd\` DECIMAL(20,8) DEFAULT NULL,
         \`raw_json\` JSON DEFAULT NULL,
-        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY \`idx_transaction_hash\` (\`transaction_hash\`)
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
-    console.log('✅ Database schema verified.');
+
+    // 2. Safely alter tables to ensure missing columns exist on cloud database
+    await ensureColumnExists('approved_wallets', 'chain', "VARCHAR(16) NOT NULL DEFAULT 'solana'");
+    await ensureColumnExists('approved_wallets', 'trader_type', "VARCHAR(32) NOT NULL DEFAULT 'KOL'");
+    await ensureColumnExists('approved_wallets', 'twitter_username', "VARCHAR(128) DEFAULT NULL");
+    await ensureColumnExists('approved_wallets', 'twitter_name', "VARCHAR(128) DEFAULT NULL");
+    await ensureColumnExists('approved_wallets', 'avatar', "TEXT DEFAULT NULL");
+    await ensureColumnExists('approved_wallets', 'tags', "JSON DEFAULT NULL");
+    await ensureColumnExists('approved_wallets', 'is_approved', "TINYINT DEFAULT 1");
+    await ensureColumnExists('approved_wallets', 'trade_count', "INT DEFAULT 1");
+    await ensureColumnExists('approved_wallets', 'win_rate_7d', "DECIMAL(5,2) DEFAULT NULL");
+    await ensureColumnExists('approved_wallets', 'pnl_7d_usd', "DECIMAL(20,4) DEFAULT NULL");
+    await ensureColumnExists('approved_wallets', 'followers_count', "INT DEFAULT NULL");
+    await ensureColumnExists('approved_wallets', 'sol_balance', "DECIMAL(20,9) DEFAULT NULL");
+
+    await ensureColumnExists('kol_trades', 'chain', "VARCHAR(16) DEFAULT 'solana'");
+    await ensureColumnExists('kol_trades', 'base_token_symbol', "VARCHAR(64) DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'base_token_logo', "TEXT DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'base_token_launchpad', "VARCHAR(32) DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'maker_avatar', "TEXT DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'maker_name', "VARCHAR(128) DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'maker_tags', "JSON DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'maker_twitter_username', "VARCHAR(128) DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'maker_twitter_name', "VARCHAR(128) DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'raw_json', "JSON DEFAULT NULL");
+
+    // 3. Ensure Unique Index on kol_trades(transaction_hash)
+    try {
+      await pool.query('ALTER TABLE `kol_trades` ADD UNIQUE INDEX `idx_transaction_hash` (`transaction_hash`)');
+    } catch (e) {
+      // index already exists
+    }
+
+    console.log('✅ Database schema verified and updated.');
   } catch (err) {
     console.error('⚠️ [Schema Error]:', err.message);
   }
@@ -130,11 +174,11 @@ const CHAIN_MAP = [
   { dbChain: 'robinhood', cliChain: 'robinhood' }
 ];
 
-let currentChainIdx = 0;
+let chainIndex = 0;
 
 async function harvestRealGMGNLoop() {
-  const currentTarget = CHAIN_MAP[currentChainIdx];
-  currentChainIdx = (currentChainIdx + 1) % CHAIN_MAP.length;
+  const currentTarget = CHAIN_MAP[chainIndex];
+  chainIndex = (chainIndex + 1) % CHAIN_MAP.length;
 
   const dbChain = currentTarget.dbChain;
   const cliChain = currentTarget.cliChain;
@@ -143,7 +187,7 @@ async function harvestRealGMGNLoop() {
   try {
     // Execute gmgn-cli to fetch REAL on-chain KOL trade records from GMGN API
     const command = `npx gmgn-cli track kol --chain ${cliChain} --limit 50 --raw`;
-    const stdout = execSync(command, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024, env: process.env });
+    const stdout = execSync(command, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024, timeout: 15000, env: process.env });
     const payload = JSON.parse(stdout);
     const trades = payload.list || [];
 
@@ -271,5 +315,18 @@ async function harvestRealGMGNLoop() {
   }
 }
 
-// Execute every 2000ms (2 seconds)
-setInterval(harvestRealGMGNLoop, 2000);
+// Execute with async locking every 3000ms
+let isHarvesting = false;
+async function runHarvestLoop() {
+  if (isHarvesting) return;
+  isHarvesting = true;
+  try {
+    await harvestRealGMGNLoop();
+  } catch (err) {
+    console.error('⚠️ [Harvester Error]:', err.message);
+  } finally {
+    isHarvesting = false;
+  }
+}
+
+setInterval(runHarvestLoop, 3000);

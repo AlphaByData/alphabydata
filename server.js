@@ -44,6 +44,44 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
+async function ensureColumnExists(table, column, definition) {
+  try {
+    await pool.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`);
+  } catch (err) {
+    // Ignore error 1060 (Duplicate column name)
+  }
+}
+
+async function ensureSchema() {
+  try {
+    await ensureColumnExists('approved_wallets', 'chain', "VARCHAR(16) NOT NULL DEFAULT 'solana'");
+    await ensureColumnExists('approved_wallets', 'trader_type', "VARCHAR(32) NOT NULL DEFAULT 'KOL'");
+    await ensureColumnExists('approved_wallets', 'twitter_username', "VARCHAR(128) DEFAULT NULL");
+    await ensureColumnExists('approved_wallets', 'twitter_name', "VARCHAR(128) DEFAULT NULL");
+    await ensureColumnExists('approved_wallets', 'avatar', "TEXT DEFAULT NULL");
+    await ensureColumnExists('approved_wallets', 'tags', "JSON DEFAULT NULL");
+    await ensureColumnExists('approved_wallets', 'is_approved', "TINYINT DEFAULT 1");
+    await ensureColumnExists('approved_wallets', 'trade_count', "INT DEFAULT 1");
+    await ensureColumnExists('approved_wallets', 'win_rate_7d', "DECIMAL(5,2) DEFAULT NULL");
+    await ensureColumnExists('approved_wallets', 'pnl_7d_usd', "DECIMAL(20,4) DEFAULT NULL");
+
+    await ensureColumnExists('kol_trades', 'chain', "VARCHAR(16) DEFAULT 'solana'");
+    await ensureColumnExists('kol_trades', 'base_token_symbol', "VARCHAR(64) DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'base_token_logo', "TEXT DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'base_token_launchpad', "VARCHAR(32) DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'maker_avatar', "TEXT DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'maker_name', "VARCHAR(128) DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'maker_tags', "JSON DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'maker_twitter_username', "VARCHAR(128) DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'maker_twitter_name', "VARCHAR(128) DEFAULT NULL");
+    await ensureColumnExists('kol_trades', 'raw_json', "JSON DEFAULT NULL");
+  } catch (e) {
+    console.warn('⚠️ [server.js] Schema check warning:', e.message);
+  }
+}
+
+ensureSchema();
+
 // Helper to compute deterministic win rate & volume metrics for KOL cards
 function computeKOLMetrics(walletAddress, tradeCount) {
   let hash = 0;
