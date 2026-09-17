@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlphaByData — Multi-Chain KOL Influencer Directory</title>
+  <meta name="description" content="Explore and track verified KOL Influencers across Solana, BSC, Base, Ethereum, and Robinhood. Inspect real-time portfolios and track on-chain trades.">
+  <link rel="icon" type="image/jpeg" href="/alphabydata.jpg">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              red: '#e11d48',
+              redHover: '#f43f5e',
+              redDark: '#ff2b4a',
+              redBg: 'rgba(225, 29, 72, 0.08)',
+              redBorder: 'rgba(225, 29, 72, 0.25)',
+              darkBg: '#08090d',
+              darkCard: 'rgba(16, 18, 25, 0.85)',
+              darkBox: 'rgba(0, 0, 0, 0.45)',
+              lightBg: '#f8fafc',
+              lightCard: '#ffffff',
+              lightBox: '#f1f5f9',
+            }
+          },
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            outfit: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@7.0.0/primeicons.css">
+  <link rel="stylesheet" href="/global.css">
+  <script src="/theme.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body class="bg-slate-50 dark:bg-brand-darkBg text-slate-900 dark:text-white transition-colors duration-300 min-h-screen font-sans antialiased selection:bg-rose-500 selection:text-white">
+
+  <!-- HEADER NAVBAR -->
+  <header class="sticky top-0 z-40 backdrop-blur-md bg-white/90 dark:bg-[#08090d]/90 border-b border-slate-200 dark:border-white/10 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2.5">
+        <img src="/alphabydata.jpg" alt="AlphaByData Logo" class="w-10 h-10 rounded-xl border-2 border-rose-600 shadow-sm shadow-rose-500/20 object-cover">
+        <div>
+          <span class="font-outfit font-extrabold text-xl text-slate-900 dark:text-white block leading-tight">AlphaByData</span>
+          <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 tracking-wide block">Multi-Chain Directory</span>
+        </div>
+      </a>
+
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-slate-900 text-xs font-semibold text-slate-700 dark:text-slate-300">
+        <span class="pulse-dot"></span>
+        <span id="active-chain-status">SOLANA (153 KOLs)</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 py-6 sm:py-10 space-y-8">
+    
+    <!-- Hero Title -->
+    <div class="text-center max-w-3xl mx-auto space-y-3">
+      <h1 class="font-outfit text-3xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
+        Multi-Chain <span class="text-rose-600 dark:text-rose-500">KOL Influencer</span> Directory
+      </h1>
+      <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+        AlphaByData harvests, verifies, and analyzes on-chain signals from top influencers across active crypto ecosystems. Follow X accounts, inspect live trades, and track real-time portfolios.
+      </p>
+    </div>
+
+    <!-- DYNAMIC ECOSYSTEM / CHAIN SELECTOR BOX GRID -->
+    <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 shadow-lg">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+        <span class="font-outfit font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+          <i class="pi pi-globe text-rose-600"></i> Select Ecosystem / Chain:
+        </span>
+        <span id="chain-status-tag" class="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+          <i class="pi pi-check-circle text-emerald-500"></i> Active Ecosystem Dataset
+        </span>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5" id="app-chain-pills">
+        <button data-chain="solana" class="chain-box-btn active flex flex-col justify-between p-3 rounded-xl border-2 border-rose-600 bg-rose-500/10 text-left transition-all hover:scale-[1.02] shadow-sm">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-500"></span>
+            <span class="font-outfit font-extrabold text-xs text-slate-900 dark:text-white">SOLANA</span>
+          </div>
+          <span class="mt-2 text-[10px] font-extrabold bg-rose-600 text-white px-2 py-0.5 rounded-md inline-block w-fit">LIVE</span>
+        </button>
+
+        <button data-chain="bsc" class="chain-box-btn flex flex-col justify-between p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 text-left transition-all hover:border-rose-500 hover:scale-[1.02]">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400"></span>
+            <span class="font-outfit font-extrabold text-xs text-slate-900 dark:text-white">BSC</span>
+          </div>
+          <span class="mt-2 text-[10px] font-bold bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-md inline-block w-fit">SOON</span>
+        </button>
+
+        <button data-chain="base" class="chain-box-btn flex flex-col justify-between p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 text-left transition-all hover:border-rose-500 hover:scale-[1.02]">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm shadow-blue-600"></span>
+            <span class="font-outfit font-extrabold text-xs text-slate-900 dark:text-white">BASE</span>
+          </div>
+          <span class="mt-2 text-[10px] font-bold bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-md inline-block w-fit">SOON</span>
+        </button>
+
+        <button data-chain="eth" class="chain-box-btn flex flex-col justify-between p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 text-left transition-all hover:border-rose-500 hover:scale-[1.02]">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-sm shadow-indigo-400"></span>
+            <span class="font-outfit font-extrabold text-xs text-slate-900 dark:text-white">ETH</span>
+          </div>
+          <span class="mt-2 text-[10px] font-bold bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-md inline-block w-fit">SOON</span>
+        </button>
+
+        <button data-chain="robinhood" class="chain-box-btn col-span-2 sm:col-span-1 flex flex-col justify-between p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 text-left transition-all hover:border-rose-500 hover:scale-[1.02]">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500"></span>
+            <span class="font-outfit font-extrabold text-xs text-slate-900 dark:text-white">ROBINHOOD</span>
+          </div>
+          <span class="mt-2 text-[10px] font-bold bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-md inline-block w-fit">SOON</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Platform Stats Bar -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4" id="stats-container">
+      <div class="p-4 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 shadow-sm">
+        <i class="pi pi-crown text-rose-600 text-lg mb-1 block"></i>
+        <div class="font-outfit font-black text-xl sm:text-2xl text-slate-900 dark:text-white" id="stat-total-kols">153</div>
+        <div class="text-xs font-semibold text-slate-500">Verified Pure KOLs</div>
+      </div>
+
+      <div class="p-4 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 shadow-sm">
+        <i class="pi pi-chart-line text-rose-600 text-lg mb-1 block"></i>
+        <div class="font-outfit font-black text-xl sm:text-2xl text-slate-900 dark:text-white" id="stat-total-trades">410,456</div>
+        <div class="text-xs font-semibold text-slate-500">Harvested Trade Logs</div>
+      </div>
+
+      <div class="p-4 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 shadow-sm">
+        <i class="pi pi-box text-rose-600 text-lg mb-1 block"></i>
+        <div class="font-outfit font-black text-xl sm:text-2xl text-slate-900 dark:text-white" id="stat-unique-tokens">545</div>
+        <div class="text-xs font-semibold text-slate-500">Tracked Tokens</div>
+      </div>
+
+      <div class="p-4 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 shadow-sm">
+        <i class="pi pi-percentage text-rose-600 text-lg mb-1 block"></i>
+        <div class="font-outfit font-black text-xl sm:text-2xl text-rose-600 dark:text-rose-400" id="stat-avg-winrate">72.8%</div>
+        <div class="text-xs font-semibold text-slate-500">Avg KOL Win Rate</div>
+      </div>
+    </div>
+
+    <!-- Search & Filters Toolbar -->
+    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 shadow-lg space-y-4">
+      <div class="relative">
+        <i class="pi pi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
+        <input type="text" id="search-input" placeholder="Search by KOL name, handle @twitter, wallet address, or tags..." class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-rose-500 transition-colors">
+      </div>
+
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <!-- Preset Filter Pills -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0" id="category-filters">
+          <button data-preset="ALL" class="filter-pill active px-3.5 py-1.5 rounded-full text-xs font-bold bg-rose-600 text-white shadow-sm transition-all whitespace-nowrap">
+            All KOLs (<span id="count-all">153</span>)
+          </button>
+          <button data-preset="HIGH_WINRATE" class="filter-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-rose-500 transition-all whitespace-nowrap">
+            🔥 70%+ Win Rate
+          </button>
+          <button data-preset="HIGH_VOLUME" class="filter-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-rose-500 transition-all whitespace-nowrap">
+            ⚡ High SOL Volume
+          </button>
+        </div>
+
+        <!-- Sort Select -->
+        <select id="sort-select" class="h-10 px-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 text-xs font-semibold focus:outline-none focus:border-rose-500">
+          <option value="trades_desc">Most Active Trades</option>
+          <option value="winrate_desc">Highest Win Rate (%)</option>
+          <option value="name_asc">Name (A-Z)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- KOL Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="kol-grid">
+      <!-- Loaded dynamically by app.js -->
+    </div>
+
+  </main>
+
+  <!-- MODAL DRAWER TRADE INSPECTOR -->
+  <div id="trade-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] opacity-0 pointer-events-none transition-opacity duration-300 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="w-full sm:max-w-2xl max-h-[85vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col translate-y-full sm:translate-y-0 transition-transform duration-300">
+      
+      <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-white/10">
+        <div class="flex items-center gap-3">
+          <img id="modal-kol-avatar" src="" alt="KOL Avatar" class="w-10 h-10 rounded-full border border-rose-500 object-cover">
+          <div>
+            <h3 id="modal-kol-name" class="font-outfit font-extrabold text-base text-slate-900 dark:text-white"></h3>
+            <span class="text-xs text-slate-500">Trade Inspector • On-Chain Logs</span>
+          </div>
+        </div>
+        <button id="modal-close-btn" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all">
+          <i class="pi pi-times text-sm"></i>
+        </button>
+      </div>
+
+      <div class="p-4 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/40 grid grid-cols-3 gap-2 text-center" id="modal-kol-summary">
+        <!-- Summary loaded dynamically -->
+      </div>
+
+      <div class="p-4 overflow-y-auto flex-1">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead>
+              <tr class="border-b border-slate-200 dark:border-white/10 text-slate-500 font-bold uppercase text-[10px]">
+                <th class="pb-2">Type</th>
+                <th class="pb-2">Token</th>
+                <th class="pb-2">SOL Amount</th>
+                <th class="pb-2">Price USD</th>
+                <th class="pb-2">Time</th>
+                <th class="pb-2">Action</th>
+              </tr>
+            </thead>
+            <tbody id="trades-tbody" class="divide-y divide-slate-100 dark:divide-white/5">
+              <!-- Loaded dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast-notification" class="fixed bottom-16 left-1/2 -translate-x-1/2 z-[1000] max-w-sm w-[90%] pointer-events-none opacity-0 translate-y-4 transition-all duration-300">
+    <div class="p-3.5 rounded-xl bg-slate-900 text-white border border-rose-500 shadow-xl flex items-center gap-3 text-xs font-bold">
+      <i class="pi pi-info-circle text-rose-500 text-base"></i>
+      <span id="toast-message">Notification</span>
+    </div>
+  </div>
+
+  <!-- FLOATING THEME TOGGLE -->
+  <div class="fixed bottom-4 right-4 z-50">
+    <button id="theme-toggle-btn" class="w-10 h-10 rounded-full bg-white dark:bg-slate-900 border-2 border-rose-600 text-rose-600 dark:text-rose-400 flex items-center justify-center shadow-lg shadow-rose-500/20 hover:scale-110 transition-transform">
+      <i id="theme-toggle-icon" class="pi pi-moon text-base"></i>
+    </button>
+  </div>
+
+</body>
+</html>
