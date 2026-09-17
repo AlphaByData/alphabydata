@@ -50,8 +50,60 @@ const INITIAL_KOL_SEED = [
 
 async function ensureSchemaAndSeed() {
   try {
+    // 0. Ensure tables exist
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS \`approved_wallets\` (
+        \`wallet_address\` VARCHAR(64) PRIMARY KEY,
+        \`trader_type\` VARCHAR(32) NOT NULL DEFAULT 'KOL',
+        \`name\` VARCHAR(128) DEFAULT NULL,
+        \`twitter_username\` VARCHAR(128) DEFAULT NULL,
+        \`twitter_name\` VARCHAR(128) DEFAULT NULL,
+        \`avatar\` TEXT DEFAULT NULL,
+        \`tags\` JSON DEFAULT NULL,
+        \`is_approved\` TINYINT DEFAULT 1,
+        \`trade_count\` INT DEFAULT 1,
+        \`win_rate_7d\` DECIMAL(5,2) DEFAULT NULL,
+        \`pnl_7d_usd\` DECIMAL(20,4) DEFAULT NULL,
+        \`followers_count\` INT DEFAULT NULL,
+        \`sol_balance\` DECIMAL(20,9) DEFAULT NULL,
+        \`first_seen_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        \`last_seen_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS \`kol_trades\` (
+        \`id\` BIGINT AUTO_INCREMENT PRIMARY KEY,
+        \`transaction_hash\` VARCHAR(128) NOT NULL,
+        \`maker\` VARCHAR(64) NOT NULL,
+        \`chain\` VARCHAR(16) DEFAULT 'sol',
+        \`side\` VARCHAR(10) NOT NULL,
+        \`base_address\` VARCHAR(64) NOT NULL,
+        \`quote_amount\` DECIMAL(36, 12) DEFAULT 0,
+        \`amount_usd\` DECIMAL(20, 8) DEFAULT 0,
+        \`price_usd\` DECIMAL(24, 12) DEFAULT 0,
+        \`is_open_or_close\` TINYINT DEFAULT 0,
+        \`timestamp\` BIGINT NOT NULL,
+        \`trade_time\` DATETIME NULL,
+        \`base_token_symbol\` VARCHAR(64) DEFAULT NULL,
+        \`base_token_launchpad\` VARCHAR(32) DEFAULT NULL,
+        \`maker_avatar\` TEXT DEFAULT NULL,
+        \`maker_name\` VARCHAR(128) DEFAULT NULL,
+        \`maker_tags\` JSON DEFAULT NULL,
+        \`maker_twitter_username\` VARCHAR(128) DEFAULT NULL,
+        \`maker_twitter_name\` VARCHAR(128) DEFAULT NULL,
+        \`market_cap_usd\` DECIMAL(24,2) DEFAULT NULL,
+        \`volume_24h_usd\` DECIMAL(24,2) DEFAULT NULL,
+        \`profit_usd\` DECIMAL(20,8) DEFAULT NULL,
+        \`realized_pnl_usd\` DECIMAL(20,8) DEFAULT NULL,
+        \`raw_json\` JSON DEFAULT NULL,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
     // 1. Auto-expand schema columns if not existing
     const walletCols = [
+      "ADD COLUMN IF NOT EXISTS is_approved TINYINT DEFAULT 1",
       "ADD COLUMN IF NOT EXISTS win_rate_7d DECIMAL(5,2) DEFAULT NULL",
       "ADD COLUMN IF NOT EXISTS pnl_7d_usd DECIMAL(20,4) DEFAULT NULL",
       "ADD COLUMN IF NOT EXISTS followers_count INT DEFAULT NULL",
