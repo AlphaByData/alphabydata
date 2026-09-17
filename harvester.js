@@ -133,7 +133,7 @@ async function harvestRealGMGNLoop() {
 
   try {
     // Execute gmgn-cli to fetch REAL on-chain KOL trade records from GMGN API
-    const command = `gmgn-cli track kol --chain ${cliChain} --limit 50 --raw`;
+    const command = `npx gmgn-cli track kol --chain ${cliChain} --limit 50 --raw`;
     const stdout = execSync(command, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 });
     const payload = JSON.parse(stdout);
     const trades = payload.list || [];
