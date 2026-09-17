@@ -8,7 +8,16 @@ import { execSync } from 'child_process';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+dotenv.config();
 dotenv.config({ path: path.join(__dirname, '../v1/.env') });
+
+// Ensure GMGN API Key and Private Key are present for child process execution
+if (!process.env.GMGN_API_KEY) {
+  process.env.GMGN_API_KEY = 'gmgn_7698b9d920a1bbf64b382527aabc9997';
+}
+if (!process.env.GMGN_PRIVATE_KEY) {
+  process.env.GMGN_PRIVATE_KEY = '-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIDhjaZuafBhCMv7DToF4IsOqawpqBbuh9tOsEOXAjbCp\n-----END PRIVATE KEY-----';
+}
 
 // Mini Express HTTP Server for Render Health Check
 const app = express();
@@ -134,7 +143,7 @@ async function harvestRealGMGNLoop() {
   try {
     // Execute gmgn-cli to fetch REAL on-chain KOL trade records from GMGN API
     const command = `npx gmgn-cli track kol --chain ${cliChain} --limit 50 --raw`;
-    const stdout = execSync(command, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 });
+    const stdout = execSync(command, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024, env: process.env });
     const payload = JSON.parse(stdout);
     const trades = payload.list || [];
 
