@@ -58,14 +58,18 @@
 
       <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600 dark:text-slate-300">
         <a href="#hero" class="hover:text-rose-600 dark:hover:text-rose-400 transition-colors">Home</a>
+        <a href="#about" class="hover:text-rose-600 dark:hover:text-rose-400 transition-colors">About & Use Cases</a>
         <a href="#chains" class="hover:text-rose-600 dark:hover:text-rose-400 transition-colors">Chains</a>
-        <a href="#socials" class="hover:text-rose-600 dark:hover:text-rose-400 transition-colors">Community</a>
       </nav>
 
-      <button id="btn-burger-menu" class="flex items-center gap-2 px-3.5 py-2 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 text-slate-800 dark:text-white hover:border-rose-500 hover:text-rose-600 transition-all text-sm font-bold shadow-sm">
-        <i class="pi pi-bars text-base"></i>
-        <span class="hidden md:inline">Products</span>
-      </button>
+      <div class="flex items-center gap-3">
+        <a href="/app" class="launch-app-mobile-hide hidden md:flex px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs shadow-md shadow-rose-600/20 transition-all items-center gap-1.5">
+          Launch App <i class="pi pi-arrow-right text-[10px]"></i>
+        </a>
+        <button id="btn-burger-menu" aria-label="Open Products Menu" class="flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 text-slate-800 dark:text-white hover:border-rose-500 transition-all text-xs font-bold shadow-sm md:hidden">
+          <i class="pi pi-bars text-lg"></i>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -79,80 +83,59 @@
         <!-- Headline -->
         <h1 class="font-outfit text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.1]">
           No hype. No narratives.<br>
-          Just <span class="text-rose-600 dark:text-rose-500">on-chain data</span> and <span class="text-slate-800 dark:text-slate-100">AI-driven analysis.</span>
+          Just <span class="text-rose-600 dark:text-rose-500">on-chain data</span> and <span class="text-slate-800 dark:text-slate-100">AI analysis.</span>
         </h1>
 
         <!-- Subtitle -->
         <p class="text-slate-700 dark:text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl font-medium">
-          Started in <strong class="font-bold text-slate-900 dark:text-white">2026</strong> with <strong class="font-bold text-slate-900 dark:text-white">AI and Data Analytics</strong>, AlphaByData cuts through crypto noise by harvesting, verifying, and tracking real-time on-chain intelligence from KOLs and Smart Money.
+          AlphaByData harvests, verifies, and tracks real-time on-chain signals from top influencer wallets across active crypto ecosystems.
         </p>
 
         <!-- MULTI-CHAIN SELECTOR BOX GRID -->
         <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 shadow-lg" id="chains">
-          <div class="flex items-center justify-between gap-2 mb-4">
-            <span class="font-outfit font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-              <i class="pi pi-globe text-rose-600"></i> Select Ecosystem / Chain:
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <span class="font-outfit font-bold text-xs sm:text-sm text-slate-900 dark:text-white flex items-center gap-2">
+              <i class="pi pi-globe text-rose-600"></i> Active Multi-Chain Ecosystems:
             </span>
           </div>
 
           <!-- Box Cards Grid -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5" id="chain-pills">
-            <button data-chain="solana" class="chain-box-btn active flex flex-col justify-between p-3 rounded-xl border-2 border-rose-600 bg-rose-500/10 text-left transition-all hover:scale-[1.02] shadow-sm">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-500"></span>
-                <span class="font-outfit font-extrabold text-xs text-slate-900 dark:text-white">SOLANA</span>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2" id="chain-pills">
+            <a href="/app?chain=solana" class="chain-box-btn flex items-center justify-between p-2.5 rounded-xl border-2 border-rose-600 bg-rose-500/10 text-left transition-all hover:scale-[1.02]">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm shadow-purple-500 flex-shrink-0"></span>
+                <span class="font-outfit font-extrabold text-xs text-slate-900 dark:text-white truncate">SOLANA</span>
               </div>
-              <span class="mt-2 text-[10px] font-extrabold bg-rose-600 text-white px-2 py-0.5 rounded-md inline-block w-fit">LIVE</span>
-            </button>
+            </a>
 
-            <button data-chain="bsc" class="chain-box-btn flex flex-col justify-between p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 text-left transition-all hover:border-rose-500 hover:scale-[1.02]">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400"></span>
-                <span class="font-outfit font-extrabold text-xs text-slate-900 dark:text-white">BSC</span>
+            <a href="/app?chain=bsc" class="chain-box-btn flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 text-left transition-all hover:border-rose-500 hover:scale-[1.02]">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400 flex-shrink-0"></span>
+                <span class="font-outfit font-extrabold text-xs text-slate-900 dark:text-white truncate">BSC</span>
               </div>
-              <span class="mt-2 text-[10px] font-bold bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-md inline-block w-fit">SOON</span>
-            </button>
+            </a>
 
-            <button data-chain="base" class="chain-box-btn flex flex-col justify-between p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 text-left transition-all hover:border-rose-500 hover:scale-[1.02]">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm shadow-blue-600"></span>
-                <span class="font-outfit font-extrabold text-xs text-slate-900 dark:text-white">BASE</span>
+            <a href="/app?chain=base" class="chain-box-btn flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 text-left transition-all hover:border-rose-500 hover:scale-[1.02]">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm shadow-blue-600 flex-shrink-0"></span>
+                <span class="font-outfit font-extrabold text-xs text-slate-900 dark:text-white truncate">BASE</span>
               </div>
-              <span class="mt-2 text-[10px] font-bold bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-md inline-block w-fit">SOON</span>
-            </button>
+            </a>
 
-            <button data-chain="eth" class="chain-box-btn flex flex-col justify-between p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 text-left transition-all hover:border-rose-500 hover:scale-[1.02]">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-sm shadow-indigo-400"></span>
-                <span class="font-outfit font-extrabold text-xs text-slate-900 dark:text-white">ETH</span>
+            <a href="/app?chain=eth" class="chain-box-btn flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 text-left transition-all hover:border-rose-500 hover:scale-[1.02]">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-sm shadow-indigo-400 flex-shrink-0"></span>
+                <span class="font-outfit font-extrabold text-xs text-slate-900 dark:text-white truncate">ETH</span>
               </div>
-              <span class="mt-2 text-[10px] font-bold bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-md inline-block w-fit">SOON</span>
-            </button>
+            </a>
 
-            <button data-chain="robinhood" class="chain-box-btn col-span-2 sm:col-span-1 flex flex-col justify-between p-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 text-left transition-all hover:border-rose-500 hover:scale-[1.02]">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500"></span>
-                <span class="font-outfit font-extrabold text-xs text-slate-900 dark:text-white">ROBINHOOD</span>
+            <a href="/app?chain=robinhood" class="chain-box-btn flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800/50 text-left transition-all hover:border-rose-500 hover:scale-[1.02]">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500 flex-shrink-0"></span>
+                <span class="font-outfit font-extrabold text-xs text-slate-900 dark:text-white truncate">ROBINHOOD</span>
               </div>
-              <span class="mt-2 text-[10px] font-bold bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-md inline-block w-fit">SOON</span>
-            </button>
+            </a>
           </div>
-        </div>
-
-        <!-- Social Icons Row -->
-        <div class="flex items-center gap-3 pt-2" id="socials">
-          <a href="https://x.com" target="_blank" class="w-10 h-10 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:border-rose-500 hover:text-rose-600 transition-all shadow-sm">
-            <i class="pi pi-twitter text-base"></i>
-          </a>
-          <a href="https://t.me" target="_blank" class="w-10 h-10 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:border-rose-500 hover:text-rose-600 transition-all shadow-sm">
-            <i class="pi pi-send text-base"></i>
-          </a>
-          <a href="https://discord.com" target="_blank" class="w-10 h-10 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:border-rose-500 hover:text-rose-600 transition-all shadow-sm">
-            <i class="pi pi-discord text-base"></i>
-          </a>
-          <a href="https://github.com" target="_blank" class="w-10 h-10 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:border-rose-500 hover:text-rose-600 transition-all shadow-sm">
-            <i class="pi pi-github text-base"></i>
-          </a>
         </div>
       </div>
 
@@ -161,36 +144,141 @@
         <div class="p-6 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-white/10 shadow-xl space-y-4 relative overflow-hidden">
           <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/10">
             <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full bg-rose-500"></span>
-              <span class="font-outfit font-extrabold text-sm text-slate-900 dark:text-white">AI Stream Intelligence</span>
+              <span class="w-3 h-3 rounded-full bg-rose-500 animate-ping"></span>
+              <span class="font-outfit font-extrabold text-sm text-slate-900 dark:text-white">Live On-Chain Engine</span>
             </div>
-            <span class="text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-full">REAL-TIME</span>
+            <span class="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ACTIVE 24/7
+            </span>
           </div>
 
           <div class="space-y-3 text-xs">
             <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/5 flex items-center justify-between">
               <div>
-                <span class="font-bold text-slate-900 dark:text-white block">KOL Wallet Detection</span>
-                <span class="text-slate-500 dark:text-slate-400">153 Verified KOL Profiles Active</span>
+                <span class="font-bold text-slate-900 dark:text-white block">Verified KOL Directory</span>
+                <span class="text-slate-500 dark:text-slate-400">200 Multi-Chain Profiles</span>
               </div>
-              <span class="font-mono text-emerald-600 dark:text-emerald-400 font-bold">72.8% WR</span>
+              <span class="font-mono text-emerald-600 dark:text-emerald-400 font-bold">100% Verified</span>
             </div>
 
             <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/5 flex items-center justify-between">
               <div>
-                <span class="font-bold text-slate-900 dark:text-white block">Multi-Ecosystem Engine</span>
+                <span class="font-bold text-slate-900 dark:text-white block">GMGN API Harvester</span>
                 <span class="text-slate-500 dark:text-slate-400">Solana, BSC, Base, ETH & Robinhood</span>
               </div>
-              <span class="font-mono text-rose-600 dark:text-rose-400 font-bold">410K+ Trades</span>
+              <span class="font-mono text-rose-600 dark:text-rose-400 font-bold">Zero Duplicates</span>
             </div>
           </div>
 
-          <a href="/app" class="block w-full text-center py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm shadow-md shadow-rose-600/30 transition-all">
-            Launch Products Directory <i class="pi pi-arrow-right text-xs ml-1"></i>
+          <a href="/app" class="block w-full text-center py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-sm shadow-md shadow-rose-600/30 transition-all">
+            Open KOL Directory App <i class="pi pi-arrow-right text-xs ml-1"></i>
           </a>
         </div>
       </div>
 
+    </div>
+  </section>
+
+  <!-- ABOUT & USE CASES SECTION (MOBILE-FIRST HIGH IMPACT DESIGN) -->
+  <section class="max-w-7xl mx-auto px-4 py-12 border-t border-slate-200 dark:border-white/10" id="about">
+    <div class="text-center max-w-3xl mx-auto space-y-3 mb-10">
+      <span class="text-xs font-black text-rose-600 dark:text-rose-500 uppercase tracking-widest bg-rose-500/10 px-3 py-1 rounded-full inline-block">
+        Platform Capabilities & Use Cases
+      </span>
+      <h2 class="font-outfit text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+        What You Can Do On <span class="text-rose-600 dark:text-rose-500">AlphaByData</span>
+      </h2>
+      <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">
+        Designed for degens, researchers, and traders to audit on-chain signals without emotional noise.
+      </p>
+    </div>
+
+    <!-- 4 USE CASE CARDS GRID (MOBILE FIRST 1 COL -> DESKTOP 2 COLS) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+      
+      <!-- Use Case 1 -->
+      <div class="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 shadow-lg space-y-3 hover:border-rose-500 transition-all">
+        <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center font-bold">
+          <i class="pi pi-bolt text-lg"></i>
+        </div>
+        <h3 class="font-outfit font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">
+          1. Real-Time KOL Alpha Signal Tracking
+        </h3>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+          Harvest live buy and sell entries from top verified influencer wallets across Solana, BSC, Base, Ethereum, and Robinhood. Eliminate delayed callouts and catch trades as they occur on-chain.
+        </p>
+        <div class="pt-2">
+          <span class="text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-md">
+            ⚡ 2-Second Live API Harvester
+          </span>
+        </div>
+      </div>
+
+      <!-- Use Case 2 -->
+      <div class="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 shadow-lg space-y-3 hover:border-rose-500 transition-all">
+        <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
+          <i class="pi pi-search text-lg"></i>
+        </div>
+        <h3 class="font-outfit font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">
+          2. Daily On-Chain Trade Inspector & Swap
+        </h3>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+          Click any KOL card to inspect today's exact 24H transaction logs, token contract addresses, price in USD, and timestamp. Execute 1-click token swaps directly on Jupiter or DEX aggregators.
+        </p>
+        <div class="pt-2">
+          <span class="text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-md">
+            🔍 Zero Duplicate Tx Filtering
+          </span>
+        </div>
+      </div>
+
+      <!-- Use Case 3 -->
+      <div class="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 shadow-lg space-y-3 hover:border-rose-500 transition-all">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
+          <i class="pi pi-chart-bar text-lg"></i>
+        </div>
+        <h3 class="font-outfit font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">
+          3. Multi-Chain Performance Audit & Leaderboards
+        </h3>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+          Audit 7-day win rates (%), USD PnL gains, Twitter follower metrics, and wallet SOL balances across all 5 ecosystems. Sort and filter KOLs by win rate, activity volume, or Twitter reach.
+        </p>
+        <div class="pt-2">
+          <span class="text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-md">
+            📊 5 Ecosystem Leaderboards
+          </span>
+        </div>
+      </div>
+
+      <!-- Use Case 4 -->
+      <div class="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 shadow-lg space-y-3 hover:border-rose-500 transition-all">
+        <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold">
+          <i class="pi pi-crown text-lg"></i>
+        </div>
+        <h3 class="font-outfit font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">
+          4. Smart Degen & Whale Accumulation Radar
+        </h3>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+          Detect early token accumulation by top degens, founders, and whales before hype and narratives hit public social feeds. Filter verified KOLs from noise.
+        </p>
+        <div class="pt-2">
+          <span class="text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-md">
+            👑 Verified KOL Signals
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CTA Banner -->
+    <div class="mt-10 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-700 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+      <div class="space-y-1">
+        <h3 class="font-outfit font-black text-xl sm:text-2xl">Ready to Track Real On-Chain Alpha?</h3>
+        <p class="text-xs sm:text-sm font-medium text-rose-100">Explore verified KOL profiles across Solana, BSC, Base, ETH, and Robinhood.</p>
+      </div>
+      <a href="/app" class="px-6 py-3 rounded-xl bg-white text-rose-600 hover:bg-slate-100 font-extrabold text-xs sm:text-sm shadow-md transition-all whitespace-nowrap">
+        Launch Directory App →
+      </a>
     </div>
   </section>
 
@@ -216,15 +304,15 @@
             <div class="w-9 h-9 rounded-lg bg-rose-500/10 text-rose-600 flex items-center justify-center"><i class="pi pi-users text-lg"></i></div>
             <div>
               <span class="font-outfit font-bold text-sm text-slate-900 dark:text-white block">KOL Influencer Directory</span>
-              <span class="text-xs text-slate-500">153 Verified KOL Profiles</span>
+              <span class="text-xs text-slate-500">Multi-Chain On-Chain Signals</span>
             </div>
           </a>
 
-          <a href="#chains" class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/5 hover:border-rose-500 transition-all">
-            <div class="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center"><i class="pi pi-globe text-lg"></i></div>
+          <a href="#about" class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/5 hover:border-rose-500 transition-all">
+            <div class="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center"><i class="pi pi-info-circle text-lg"></i></div>
             <div>
-              <span class="font-outfit font-bold text-sm text-slate-900 dark:text-white block">Multi-Chain Pipeline</span>
-              <span class="text-xs text-slate-500">SOL, BSC, BASE, ETH & Robinhood</span>
+              <span class="font-outfit font-bold text-sm text-slate-900 dark:text-white block">About & Use Cases</span>
+              <span class="text-xs text-slate-500">Platform Capabilities</span>
             </div>
           </a>
         </div>
@@ -236,9 +324,70 @@
     </div>
   </div>
 
+  <!-- COMPACT MOBILE-OPTIMIZED FOOTER -->
+  <footer class="mt-6 sm:mt-16 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-white/10 py-5 sm:py-10 px-4">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-3 sm:gap-8 mb-3 sm:mb-8">
+      
+      <!-- Col 1: Brand & Description -->
+      <div class="md:col-span-2 space-y-1 sm:space-y-3">
+        <a href="/" class="flex items-center gap-2">
+          <img src="/alphabydata.jpg" alt="AlphaByData Logo" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border-2 border-rose-600 shadow-sm shadow-rose-500/20 object-cover">
+          <span class="font-outfit font-extrabold text-lg sm:text-xl text-slate-900 dark:text-white leading-none">AlphaByData</span>
+        </a>
+        <p class="text-[11px] sm:text-sm text-slate-500 dark:text-slate-400 font-medium max-w-sm leading-tight sm:leading-relaxed">
+          No hype. No narratives. Just on-chain data & AI analysis across 5 crypto ecosystems.
+        </p>
+        
+        <!-- Social Icons Row in Footer -->
+        <div class="flex items-center gap-2 pt-1 sm:pt-2" id="socials">
+          <a href="https://x.com" target="_blank" aria-label="X Twitter" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:border-rose-500 hover:text-rose-600 hover:bg-rose-500/10 transition-all shadow-sm">
+            <i class="pi pi-twitter text-xs sm:text-base"></i>
+          </a>
+          <a href="https://t.me" target="_blank" aria-label="Telegram" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:border-rose-500 hover:text-rose-600 hover:bg-rose-500/10 transition-all shadow-sm">
+            <i class="pi pi-send text-xs sm:text-base"></i>
+          </a>
+          <a href="https://discord.com" target="_blank" aria-label="Discord" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:border-rose-500 hover:text-rose-600 hover:bg-rose-500/10 transition-all shadow-sm">
+            <i class="pi pi-discord text-xs sm:text-base"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Col 2: Navigation Links -->
+      <div class="space-y-1 sm:space-y-2">
+        <h4 class="font-outfit font-extrabold text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider leading-none">Navigation</h4>
+        <ul class="space-y-0.5 sm:space-y-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 leading-tight">
+          <li><a href="#hero" class="hover:text-rose-600 transition-colors">Home</a></li>
+          <li><a href="#about" class="hover:text-rose-600 transition-colors">About & Use Cases</a></li>
+          <li><a href="/app" class="hover:text-rose-600 transition-colors">KOL Directory App</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 3: Ecosystems -->
+      <div class="space-y-1 sm:space-y-2">
+        <h4 class="font-outfit font-extrabold text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider leading-none">Ecosystems</h4>
+        <div class="flex flex-wrap gap-1">
+          <a href="/app?chain=solana" class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-300 hover:border-rose-500 border border-transparent transition-all leading-tight">SOLANA</a>
+          <a href="/app?chain=bsc" class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-300 hover:border-rose-500 border border-transparent transition-all leading-tight">BSC</a>
+          <a href="/app?chain=base" class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-300 hover:border-rose-500 border border-transparent transition-all leading-tight">BASE</a>
+          <a href="/app?chain=eth" class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-300 hover:border-rose-500 border border-transparent transition-all leading-tight">ETH</a>
+          <a href="/app?chain=robinhood" class="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-300 hover:border-rose-500 border border-transparent transition-all leading-tight">ROBINHOOD</a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="max-w-7xl mx-auto pt-3 sm:pt-6 border-t border-slate-100 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-3 text-[10px] sm:text-xs text-slate-400 font-medium text-center sm:text-left leading-tight">
+      <div>AlphaByData © 2026 • Multi-Chain AI Intelligence Platform</div>
+      <div class="flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>Systems Operational 24/7</span>
+      </div>
+    </div>
+  </footer>
+
   <!-- FLOATING THEME TOGGLE -->
   <div class="fixed bottom-4 right-4 z-50">
-    <button id="theme-toggle-btn" class="w-10 h-10 rounded-full bg-white dark:bg-slate-900 border-2 border-rose-600 text-rose-600 dark:text-rose-400 flex items-center justify-center shadow-lg shadow-rose-500/20 hover:scale-110 transition-transform">
+    <button id="theme-toggle-btn" aria-label="Toggle Dark/Light Theme" class="w-10 h-10 rounded-full bg-white dark:bg-slate-900 border-2 border-rose-600 text-rose-600 dark:text-rose-400 flex items-center justify-center shadow-lg shadow-rose-500/20 hover:scale-110 transition-transform">
       <i id="theme-toggle-icon" class="pi pi-moon text-base"></i>
     </button>
   </div>

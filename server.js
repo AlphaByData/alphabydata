@@ -37,7 +37,7 @@ const pool = mysql.createPool({
   port: parseInt(process.env.DB_PORT || (isCloudDb ? '4000' : '3306')),
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'gmgn',
+  database: process.env.DB_NAME || 'alphabydata',
   ssl: isCloudDb ? { rejectUnauthorized: false } : undefined,
   waitForConnections: true,
   connectionLimit: 10,
@@ -59,54 +59,45 @@ function computeKOLMetrics(walletAddress, tradeCount) {
   return { winRate, totalVolumeSol };
 }
 
-// API Endpoint: Get Platform Stats (Dynamic Chain Support)
+// API Endpoint: Get Platform Stats (Dynamic Multi-Chain Support for SOLANA, BSC, BASE, ETH, ROBINHOOD)
 app.get('/api/stats', async (req, res) => {
   try {
     const { chain = 'solana' } = req.query;
-    const selectedChain = chain.toLowerCase();
+    const selectedChain = chain.toLowerCase() === 'sol' ? 'solana' : chain.toLowerCase();
 
-    if (selectedChain !== 'solana' && selectedChain !== 'sol') {
-      return res.json({
-        success: true,
-        data: {
-          chain: selectedChain.toUpperCase(),
-          total_kols: 0,
-          pure_kols: 0,
-          avg_win_rate: '0.0',
-          total_sol_volume: '0',
-          total_trades: '0',
-          unique_tokens: 0,
-          status: 'HARVESTING_SOON'
-        }
-      });
-    }
-
-    const [kolCounts] = await pool.query(`
+    const [kolStats] = await pool.query(`
       SELECT 
         COUNT(*) as total_kols,
-        SUM(trade_count) as total_wallet_trades
+        COALESCE(AVG(win_rate_7d), 0) as avg_win_rate
       FROM approved_wallets 
-      WHERE trader_type = 'KOL'
-    `);
+      WHERE chain = ? AND trader_type IN ('KOL', 'BOTH')
+    `, [selectedChain]);
 
-    const [tradeCounts] = await pool.query(`
+    const [tradeStats] = await pool.query(`
       SELECT 
         COUNT(*) as total_trades, 
         COUNT(DISTINCT base_address) as unique_tokens,
-        SUM(CAST(quote_amount AS DECIMAL(18,4))) as total_sol
+        COALESCE(SUM(CAST(quote_amount AS DECIMAL(18,4))), 0) as total_sol
       FROM kol_trades
-    `);
+      WHERE chain = ?
+    `, [selectedChain]);
+
+    const totalKols = kolStats[0].total_kols || 0;
+    const avgWinRate = parseFloat(kolStats[0].avg_win_rate || 0).toFixed(1);
+    const totalTrades = tradeStats[0].total_trades || 0;
+    const uniqueTokens = tradeStats[0].unique_tokens || 0;
+    const totalSolVolume = parseFloat(tradeStats[0].total_sol || 0);
 
     res.json({
       success: true,
       data: {
-        chain: 'SOLANA',
-        total_kols: kolCounts[0].total_kols || 153,
-        pure_kols: kolCounts[0].total_kols || 153,
-        avg_win_rate: '72.8',
-        total_sol_volume: parseFloat(tradeCounts[0].total_sol || 45210.5).toLocaleString('en-US', { maximumFractionDigits: 1 }),
-        total_trades: (kolCounts[0].total_wallet_trades || 410456).toLocaleString(),
-        unique_tokens: tradeCounts[0].unique_tokens || 545,
+        chain: selectedChain.toUpperCase(),
+        total_kols: totalKols,
+        pure_kols: totalKols,
+        avg_win_rate: avgWinRate,
+        total_sol_volume: totalSolVolume.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+        total_trades: totalTrades.toLocaleString(),
+        unique_tokens: uniqueTokens,
         status: 'ACTIVE'
       }
     });
@@ -116,39 +107,35 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
-// API Endpoint: Get KOL Directory List (Dynamic Chain Filter)
+// API Endpoint: Get KOL Directory List (Dynamic Multi-Chain Support)
 app.get('/api/kols', async (req, res) => {
   try {
     const { search, minWinRate, filterPreset, sortBy, chain = 'solana', limit = 200 } = req.query;
-    const selectedChain = chain.toLowerCase();
-
-    // If non-solana chain requested, return coming soon structure
-    if (selectedChain !== 'solana' && selectedChain !== 'sol') {
-      return res.json({
-        success: true,
-        chain: selectedChain.toUpperCase(),
-        count: 0,
-        data: [],
-        message: `KOL harvesting for ${selectedChain.toUpperCase()} ecosystem is coming soon in upcoming pipeline!`
-      });
-    }
+    const selectedChain = chain.toLowerCase() === 'sol' ? 'solana' : chain.toLowerCase();
 
     let query = `
       SELECT 
         wallet_address, 
+        chain,
         trader_type, 
         name, 
         twitter_username, 
         twitter_name, 
         avatar, 
         tags, 
-        trade_count, 
+        trade_count,
+        win_rate_7d,
+        pnl_7d_usd,
+        realized_pnl_usd,
+        unrealized_pnl_usd,
+        followers_count,
+        sol_balance, 
         first_seen_at, 
         last_seen_at 
       FROM approved_wallets 
-      WHERE trader_type = 'KOL'
+      WHERE chain = ? AND trader_type IN ('KOL', 'BOTH')
     `;
-    const params = [];
+    const params = [selectedChain];
 
     if (search && search.trim() !== '') {
       const term = `%${search.trim()}%`;
@@ -174,15 +161,18 @@ app.get('/api/kols', async (req, res) => {
 
       return {
         wallet_address: kol.wallet_address,
-        chain: 'SOLANA',
+        chain: (kol.chain || selectedChain).toUpperCase(),
         category: 'KOL',
         maker_name: kol.twitter_name || kol.name || 'KOL Influencer',
         twitter_username: kol.twitter_username,
         twitter_name: kol.twitter_name,
-        avatar: kol.avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${kol.wallet_address}`,
+        avatar: kol.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(kol.twitter_name || kol.name || 'KOL')}&background=e11d48&color=fff&bold=true`,
         maker_tags: cleanTags,
         total_trades: kol.trade_count,
-        win_rate: winRate,
+        win_rate: kol.win_rate_7d ? parseFloat(kol.win_rate_7d) : winRate,
+        pnl_7d_usd: kol.pnl_7d_usd ? parseFloat(kol.pnl_7d_usd) : null,
+        followers_count: kol.followers_count || null,
+        sol_balance: kol.sol_balance ? parseFloat(kol.sol_balance) : null,
         total_volume_sol: totalVolumeSol,
         twitter_url: kol.twitter_username ? `https://x.com/${kol.twitter_username}` : null,
         jupiter_url: `https://jup.ag/portfolio/${kol.wallet_address}`
@@ -199,8 +189,14 @@ app.get('/api/kols', async (req, res) => {
       formatted = formatted.filter(k => k.win_rate >= parseFloat(minWinRate));
     }
 
-    if (sortBy === 'win_rate_desc') {
+    if (sortBy === 'win_rate_desc' || sortBy === 'winrate_desc') {
       formatted.sort((a, b) => b.win_rate - a.win_rate);
+    } else if (sortBy === 'pnl_desc') {
+      formatted.sort((a, b) => (b.pnl_7d_usd || 0) - (a.pnl_7d_usd || 0));
+    } else if (sortBy === 'followers_desc') {
+      formatted.sort((a, b) => (b.followers_count || 0) - (a.followers_count || 0));
+    } else if (sortBy === 'sol_desc') {
+      formatted.sort((a, b) => (b.sol_balance || 0) - (a.sol_balance || 0));
     } else if (sortBy === 'trades_desc') {
       formatted.sort((a, b) => b.total_trades - a.total_trades);
     } else if (sortBy === 'volume_desc') {
@@ -211,7 +207,7 @@ app.get('/api/kols', async (req, res) => {
 
     res.json({
       success: true,
-      chain: 'SOLANA',
+      chain: selectedChain.toUpperCase(),
       count: formatted.length,
       data: formatted
     });
@@ -227,14 +223,15 @@ app.get('/api/kol/:wallet', async (req, res) => {
     const { wallet } = req.params;
 
     const [kolRows] = await pool.query(
-      "SELECT wallet_address, trader_type, name, twitter_username, twitter_name, avatar, tags, trade_count FROM approved_wallets WHERE wallet_address = ?",
+      "SELECT wallet_address, chain, trader_type, name, twitter_username, twitter_name, avatar, tags, trade_count FROM approved_wallets WHERE wallet_address = ?",
       [wallet]
     );
 
     let kol = kolRows.length > 0 ? kolRows[0] : null;
 
+    // Query Today's (Daily 24H) On-Chain Trades for this KOL
     const [trades] = await pool.query(
-      "SELECT id, transaction_hash, maker, side, base_address, base_token_symbol, quote_amount, amount_usd, price_usd, trade_time FROM kol_trades WHERE maker = ? ORDER BY trade_time DESC LIMIT 50",
+      "SELECT id, transaction_hash, maker, side, base_address, base_token_symbol, quote_amount, amount_usd, price_usd, trade_time FROM kol_trades WHERE maker = ? AND (trade_time >= CURDATE() OR created_at >= CURDATE()) ORDER BY trade_time DESC LIMIT 50",
       [wallet]
     );
 
@@ -265,12 +262,12 @@ app.get('/api/kol/:wallet', async (req, res) => {
       success: true,
       data: {
         wallet_address: wallet,
-        chain: 'SOLANA',
+        chain: kol ? kol.chain.toUpperCase() : 'SOLANA',
         category: 'KOL',
         maker_name: kol ? (kol.twitter_name || kol.name || 'KOL Influencer') : 'KOL Influencer',
         twitter_username: kol ? kol.twitter_username : null,
         twitter_name: kol ? kol.twitter_name : null,
-        avatar: kol && kol.avatar ? kol.avatar : `https://api.dicebear.com/7.x/identicon/svg?seed=${wallet}`,
+        avatar: kol && kol.avatar ? kol.avatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(kol ? kol.name : 'KOL')}&background=e11d48&color=fff&bold=true`,
         maker_tags: parsedTags,
         total_trades: tradeCount,
         win_rate: winRate,
