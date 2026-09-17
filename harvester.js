@@ -183,6 +183,10 @@ async function ensureSchema() {
   }
 }
 
+function logRealtime(msg) {
+  process.stdout.write(msg + '\n');
+}
+
 // Map UI chain names to GMGN CLI chain codes
 const CHAIN_MAP = [
   { dbChain: 'solana', cliChain: 'sol' },
@@ -192,144 +196,137 @@ const CHAIN_MAP = [
   { dbChain: 'robinhood', cliChain: 'robinhood' }
 ];
 
-let chainIndex = 0;
-
 async function harvestRealGMGNLoop() {
-  const currentTarget = CHAIN_MAP[chainIndex];
-  chainIndex = (chainIndex + 1) % CHAIN_MAP.length;
+  for (const currentTarget of CHAIN_MAP) {
+    const dbChain = currentTarget.dbChain;
+    const cliChain = currentTarget.cliChain;
+    const timestampStr = new Date().toLocaleTimeString();
 
-  const dbChain = currentTarget.dbChain;
-  const cliChain = currentTarget.cliChain;
-  const timestampStr = new Date().toLocaleTimeString();
+    try {
+      // Execute gmgn-cli to fetch REAL on-chain KOL trade records from GMGN API
+      const command = `npx gmgn-cli track kol --chain ${cliChain} --limit 50 --raw`;
+      const stdout = execSync(command, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024, timeout: 15000, env: process.env });
+      const payload = JSON.parse(stdout);
+      const trades = payload.list || [];
 
-  try {
-    // Execute gmgn-cli to fetch REAL on-chain KOL trade records from GMGN API
-    const command = `npx gmgn-cli track kol --chain ${cliChain} --limit 50 --raw`;
-    const stdout = execSync(command, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024, timeout: 15000, env: process.env });
-    const payload = JSON.parse(stdout);
-    const trades = payload.list || [];
-
-    if (trades.length === 0) {
-      console.log(`[${timestampStr}] ℹ️ [${dbChain.toUpperCase()}] No trades returned from GMGN API.`);
-      return;
-    }
-
-    let ingestedCount = 0;
-    let skippedDuplicateCount = 0;
-
-    for (const trade of trades) {
-      if (!trade.maker || !trade.transaction_hash) continue;
-
-      // Filter: Check if transaction_hash already exists in database
-      const [existing] = await pool.query(
-        'SELECT id FROM kol_trades WHERE transaction_hash = ? LIMIT 1',
-        [trade.transaction_hash]
-      );
-
-      if (existing.length > 0) {
-        skippedDuplicateCount++;
-        continue; // Skip duplicate transaction hash
+      if (trades.length === 0) {
+        logRealtime(`[${timestampStr}] ℹ️ [${dbChain.toUpperCase()}] No trades returned from GMGN API.`);
+        continue;
       }
 
-      const makerInfo = trade.maker_info || {};
-      const baseToken = trade.base_token || {};
-      const handle = makerInfo.twitter_username || '';
-      const name = makerInfo.twitter_name || makerInfo.name || 'KOL Influencer';
+      let ingestedCount = 0;
+      let skippedDuplicateCount = 0;
 
-      // Ensure a 100% working, high-quality picture avatar is set
-      const avatarUrl = makerInfo.avatar && makerInfo.avatar.startsWith('http')
-        ? makerInfo.avatar
-        : `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(handle || trade.maker)}`;
+      for (const trade of trades) {
+        if (!trade.maker || !trade.transaction_hash) continue;
 
-      // Compute analytics for approved_wallets
-      let hash = 0;
-      for (let i = 0; i < trade.maker.length; i++) {
-        hash = (hash << 5) - hash + trade.maker.charCodeAt(i);
-        hash |= 0;
+        // Filter: Check if transaction_hash already exists in database
+        const [existing] = await pool.query(
+          'SELECT id FROM kol_trades WHERE transaction_hash = ? LIMIT 1',
+          [trade.transaction_hash]
+        );
+
+        if (existing.length > 0) {
+          skippedDuplicateCount++;
+          continue; // Skip duplicate transaction hash
+        }
+
+        const makerInfo = trade.maker_info || {};
+        const baseToken = trade.base_token || {};
+        const handle = makerInfo.twitter_username || '';
+        const name = makerInfo.twitter_name || makerInfo.name || 'KOL Influencer';
+
+        // Ensure a 100% working, high-quality picture avatar is set
+        const avatarUrl = makerInfo.avatar && makerInfo.avatar.startsWith('http')
+          ? makerInfo.avatar
+          : `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(handle || trade.maker)}`;
+
+        // Compute analytics for approved_wallets
+        let hash = 0;
+        for (let i = 0; i < trade.maker.length; i++) {
+          hash = (hash << 5) - hash + trade.maker.charCodeAt(i);
+          hash |= 0;
+        }
+        const posHash = Math.abs(hash);
+        const winRate = (60 + (posHash % 28.5)).toFixed(2);
+        const pnl7d = (1200 + (posHash % 45000)).toFixed(2);
+        const followers = 8000 + (posHash % 250000);
+        const solBalance = (3.5 + ((posHash % 600) / 10)).toFixed(4);
+
+        // 1. Upsert REAL KOL wallet into approved_wallets
+        await pool.query(`
+          INSERT INTO approved_wallets (
+            wallet_address, chain, trader_type, name, twitter_username, twitter_name, avatar, tags, is_approved, trade_count,
+            win_rate_7d, pnl_7d_usd, realized_pnl_usd, unrealized_pnl_usd, followers_count, sol_balance
+          ) VALUES (?, ?, 'KOL', ?, ?, ?, ?, ?, 1, 1, ?, ?, ?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE 
+            chain = VALUES(chain),
+            trade_count = trade_count + 1,
+            name = VALUES(name),
+            twitter_name = VALUES(twitter_name),
+            avatar = VALUES(avatar),
+            last_seen_at = CURRENT_TIMESTAMP;
+        `, [
+          trade.maker,
+          dbChain,
+          name,
+          handle,
+          name,
+          avatarUrl,
+          JSON.stringify(makerInfo.tags || ['kol']),
+          winRate,
+          pnl7d,
+          (pnl7d * 0.8).toFixed(2),
+          (pnl7d * 0.2).toFixed(2),
+          followers,
+          solBalance
+        ]);
+
+        // 2. Insert NEW REAL Trade into kol_trades
+        const tradeTime = trade.timestamp ? new Date(trade.timestamp * 1000) : new Date();
+
+        await pool.query(`
+          INSERT IGNORE INTO kol_trades (
+            transaction_hash, maker, chain, side, base_address,
+            base_amount, quote_amount, buy_cost_usd, token_amount, amount_usd, price, price_usd,
+            is_open_or_close, timestamp, trade_time,
+            base_token_symbol, base_token_logo, base_token_launchpad,
+            maker_avatar, maker_name, maker_tags, maker_twitter_username, maker_twitter_name, raw_json
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        `, [
+          trade.transaction_hash,
+          trade.maker,
+          dbChain,
+          (trade.side || 'buy').toLowerCase(),
+          trade.base_address || '',
+          trade.base_amount || 0,
+          trade.quote_amount || 0,
+          trade.buy_cost_usd || 0,
+          trade.token_amount || 0,
+          trade.amount_usd || 0,
+          trade.price || 0,
+          trade.price_usd || 0,
+          trade.is_open_or_close || 0,
+          trade.timestamp || Math.floor(Date.now() / 1000),
+          tradeTime,
+          baseToken.symbol || 'TOKEN',
+          baseToken.logo || null,
+          baseToken.launchpad || '',
+          avatarUrl,
+          name,
+          JSON.stringify(makerInfo.tags || ['kol']),
+          handle,
+          name,
+          JSON.stringify(trade)
+        ]);
+
+        ingestedCount++;
       }
-      const posHash = Math.abs(hash);
-      const winRate = (60 + (posHash % 28.5)).toFixed(2);
-      const pnl7d = (1200 + (posHash % 45000)).toFixed(2);
-      const followers = 8000 + (posHash % 250000);
-      const solBalance = (3.5 + ((posHash % 600) / 10)).toFixed(4);
 
-      // 1. Upsert REAL KOL wallet into approved_wallets
-      await pool.query(`
-        INSERT INTO approved_wallets (
-          wallet_address, chain, trader_type, name, twitter_username, twitter_name, avatar, tags, is_approved, trade_count,
-          win_rate_7d, pnl_7d_usd, realized_pnl_usd, unrealized_pnl_usd, followers_count, sol_balance
-        ) VALUES (?, ?, 'KOL', ?, ?, ?, ?, ?, 1, 1, ?, ?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE 
-          chain = VALUES(chain),
-          trade_count = trade_count + 1,
-          name = VALUES(name),
-          twitter_name = VALUES(twitter_name),
-          avatar = VALUES(avatar),
-          last_seen_at = CURRENT_TIMESTAMP;
-      `, [
-        trade.maker,
-        dbChain,
-        name,
-        handle,
-        name,
-        avatarUrl,
-        JSON.stringify(makerInfo.tags || ['kol']),
-        winRate,
-        pnl7d,
-        (pnl7d * 0.8).toFixed(2),
-        (pnl7d * 0.2).toFixed(2),
-        followers,
-        solBalance
-      ]);
+      logRealtime(`[${timestampStr}] 📡 [${dbChain.toUpperCase()}] Ingested ${ingestedCount} NEW unique trades (${skippedDuplicateCount} duplicate tx_hashes filtered)`);
 
-      // 2. Insert NEW REAL Trade into kol_trades
-      const tradeTime = trade.timestamp ? new Date(trade.timestamp * 1000) : new Date();
-
-      await pool.query(`
-        INSERT IGNORE INTO kol_trades (
-          transaction_hash, maker, chain, side, base_address,
-          base_amount, quote_amount, buy_cost_usd, token_amount, amount_usd, price, price_usd,
-          is_open_or_close, timestamp, trade_time,
-          base_token_symbol, base_token_logo, base_token_launchpad,
-          maker_avatar, maker_name, maker_tags, maker_twitter_username, maker_twitter_name, raw_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-      `, [
-        trade.transaction_hash,
-        trade.maker,
-        dbChain,
-        (trade.side || 'buy').toLowerCase(),
-        trade.base_address || '',
-        trade.base_amount || 0,
-        trade.quote_amount || 0,
-        trade.buy_cost_usd || 0,
-        trade.token_amount || 0,
-        trade.amount_usd || 0,
-        trade.price || 0,
-        trade.price_usd || 0,
-        trade.is_open_or_close || 0,
-        trade.timestamp || Math.floor(Date.now() / 1000),
-        tradeTime,
-        baseToken.symbol || 'TOKEN',
-        baseToken.logo || null,
-        baseToken.launchpad || '',
-        avatarUrl,
-        name,
-        JSON.stringify(makerInfo.tags || ['kol']),
-        handle,
-        name,
-        JSON.stringify(trade)
-      ]);
-
-      ingestedCount++;
-    }
-
-    console.log(`[${timestampStr}] 📡 [${dbChain.toUpperCase()}] Ingested ${ingestedCount} NEW unique trades (${skippedDuplicateCount} duplicate tx_hashes filtered)`);
-
-  } catch (err) {
-    if (err.message && err.message.includes('AUTH_TIMESTAMP_EXPIRED')) {
-      console.error(`⚠️ [${timestampStr}] GMGN Timestamp error: Syncing clock skew...`);
-    } else {
-      console.error(`⚠️ [${timestampStr}] GMGN API Harvest error:`, err.message);
+    } catch (err) {
+      logRealtime(`⚠️ [${timestampStr}] GMGN API Harvest error [${dbChain.toUpperCase()}]: ${err.message}`);
     }
   }
 }
@@ -342,7 +339,7 @@ async function runHarvestLoop() {
   try {
     await harvestRealGMGNLoop();
   } catch (err) {
-    console.error('⚠️ [Harvester Error]:', err.message);
+    logRealtime(`⚠️ [Harvester Error]: ${err.message}`);
   } finally {
     isHarvesting = false;
   }
@@ -350,9 +347,9 @@ async function runHarvestLoop() {
 
 // Run schema check and migration FIRST, THEN start loop
 ensureSchema().then(() => {
-  console.log('🚀 [AlphaByData Harvester] Starting Real GMGN On-Chain Intelligence Loop...');
+  logRealtime('🚀 [AlphaByData Harvester] Starting Real GMGN On-Chain Intelligence Loop...');
   setInterval(runHarvestLoop, 3000);
 }).catch(err => {
-  console.error('⚠️ [Schema Error]:', err);
+  logRealtime(`⚠️ [Schema Error]: ${err.message}`);
   setInterval(runHarvestLoop, 3000);
 });
